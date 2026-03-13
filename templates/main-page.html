@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duplo - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <i class="fa-solid fa-user icon-btn"></i>
+            <i class="fa-solid fa-users icon-btn"></i>
+            
+            <img src="{{ url_for('static', path='/icons/logo-icon.png') }}" alt="Duplo" class="header-logo-img">
+            
+            <i class="fa-solid fa-shirt icon-btn"></i>
+            <i class="fa-solid fa-gear icon-btn"></i>
+        </header>
+
+        <section class="character-section">
+            <div class="character-card">
+                <img src="{{ url_for('static', path='/icons/skins/squirrel-skins/regular.png') }}" alt="Your Squirrel" class="squirrel-img">
+            </div>
+            
+            <div class="input-group">
+                <input type="text" placeholder="Type your goal" class="goal-input">
+                <button class="btn-generate">Generate</button>
+            </div>
+        </section>
+
+        <section class="quests-container">
+            <h2 class="quests-title">YOUR QUESTS</h2>
+            
+            <div class="quests-list">
+                <h3>Daily quests:</h3>
+                <ul>
+                    <li>Take a shower</li>
+                    <li>Read a book</li>
+                    <li>Lorem</li>
+                    <li>Ipsum</li>
+                    <li>IASA</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+</body>
+</html>

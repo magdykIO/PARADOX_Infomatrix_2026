@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Duplo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+<body>
+    <div class="welcome-container">
+        <header class="hero-header">
+            <h1 class="title-text">Welcome to</h1>
+            <img src="{{ url_for('static', path='/icons/logo-icon.png') }}" alt="Duplo" class="logo-welcome">
+            
+            <p class="subtitle">
+                Take the first step<br>
+                towards your dream.
+            </p>
+        </header>
+
+        <div class="login-actions">
+            <div class="social-login">
+                <button class="social-btn"><i class="fab fa-google"></i></button>
+                <button class="social-btn"><i class="fab fa-facebook"></i></button>
+            </div>
+
+            <div class="divider"><span>OR</span></div>
+
+            <button class="btn-primary" onclick="window.location.href='/signup'">Sign up with username</button>
+        </div>
+
+        <footer class="footer-text">
+            Existing account? <a href="/signin" class="sign-in-link">Sign in.</a>
+        </footer>
+    </div>
+</body>
+</html>
