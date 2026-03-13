@@ -1,7 +1,7 @@
 # CUSTOM .GITIGNORE ADDITIONS
 MYTESTFOLDER/
 data/
-
+.env
 
 
 
