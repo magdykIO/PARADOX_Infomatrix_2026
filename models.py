@@ -14,12 +14,10 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
 
     nuts_amount = Column(Integer, default=0)
-
-    # Тепер це об'єкт: {"hat": "regular", "body": "regular", "eyes": "regular", ...}
-    current_skin = Column(JSON)
-
-    # Список усіх куплених частин: ["hat_regular", "hat_golden", "body_regular"]
+    goal = Column(String)
+    current_skin = Column(String, default="regular")
     unlocked_skins = Column(JSON, default=list)
+    # Зберігаємо список імен скінів ["regular", "cool_squirrel"]
 
     last_seen = Column(DateTime, onupdate=func.now())
     join_time = Column(DateTime, server_default=func.now())
@@ -35,7 +33,7 @@ class Quest(Base):
     description = Column(String)
     category = Column(String)
     from_who = Column(String)  # Від кого таска
-
+    is_started = Column(Boolean, default=False)
     difficulty = Column(Integer)
     base_reward = Column(Integer)
 
