@@ -93,12 +93,33 @@ async def handle_registration(
             status_code=status.HTTP_303_SEE_OTHER,
         )
 
+    default_appearance = {
+        "hat": "regular",
+        "squirrel": "regular",
+        "background": "regular",
+        "tail": "regular",
+        "left-hand": "regular",
+        "right-hand": "regular",
+    }
+
     # Create a new User object using your SQLAlchemy model
     new_user = models.User(
         full_name=full_name,
         username=username,
         email=email,
         hashed_password=hashed_password,
+        current_skin=default_appearance,
+        # Додаємо ці початкові частини в список розблокованих,
+        # щоб юзер міг повернутися до них пізніше
+        unlocked_skins=[
+            "hat_regular",
+            "squirrel_regular",
+            "background_regular",
+            "tail_regular",
+            "left_hand_regular",
+            "right_hand_regular",
+        ],
+        nuts_amount=0,
     )
 
     # Add to session and save to database
