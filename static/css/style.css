@@ -1,0 +1,425 @@
+/* --- 1. Базові налаштування (Reset) --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #1a1a1a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Змінив з center для кращого скролу на мобілках */
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent; 
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* --- 2. Спільні компоненти --- */
+.app-container, .welcome-container {
+    width: 100%;
+    max-width: 450px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+}
+
+/* Кнопки */
+.btn-primary, .btn-generate {
+    background-color: #f47e2d;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:active, .btn-generate:active {
+    background-color: #d66a1f;
+}
+
+/* --- 3. Welcome Page Styles --- */
+/* --- 3. Welcome Page Styles --- */
+.welcome-container {
+    padding: 20px;
+    align-items: center;
+    text-align: center;
+    justify-content: center; /* Центруємо контент по вертикалі */
+    gap: 10px; /* Додає невеликі відступи між великими блоками */
+}
+
+.hero-header {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.title-text {
+    font-size: 36px; /* Трохи зменшив, щоб не займало пів екрана */
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.logo-welcome {
+    width: 160px; /* Оптимальний розмір */
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.subtitle {
+    font-size: 17px;
+    color: #888;
+    line-height: 1.4;
+    max-width: 280px;
+}
+
+.login-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.social-login {
+    display: flex;
+    gap: 30px;
+    margin: 25px 0;
+}
+
+.social-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 42px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.social-btn:active {
+    transform: scale(0.9);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 260px;
+    color: #444;
+    font-size: 13px;
+    margin-bottom: 25px;
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #333;
+}
+
+.divider span { padding: 0 15px; }
+
+/* Кнопка на Welcome Page має бути чітко по центру */
+.welcome-container {
+    width: 100%;
+    max-width: 300px;
+    padding: 16px 0;
+    font-size: 16px;
+}
+
+.btn-primary {
+    width: 100%;
+    max-width: 320px;
+    padding: 18px 0;
+    font-size: 17px;
+}
+
+.footer-text {
+    margin-top: 30px;
+    font-size: 14px;
+    color: #888;
+}
+
+.sign-in-link { color: #fff; text-decoration: none; font-weight: 700; }
+
+/* --- 4. Main Page Styles --- */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.header-logo-img {
+    height: 42px; /* Збільшив логотип (було 30px) */
+    width: auto;
+}
+
+.icon-btn {
+    color: #f47e2d;
+    font-size: 22px;
+}
+
+.character-section {
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.character-card {
+    width: 100%;
+    background: #2a2a2a;
+    border-radius: 25px;
+    overflow: hidden;
+    border: 1px solid #333;
+    aspect-ratio: 16 / 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.squirrel-img {
+    width: 45%; /* Зменшив білку (було 60%) */
+    height: auto;
+}
+
+/* Ввід та кнопка Generate */
+.input-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 280px; /* Зробив групу вводу компактнішою */
+}
+
+.goal-input {
+    background-color: #121212;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 10px;
+    color: white;
+    text-align: center;
+}
+
+.btn-generate {
+    padding: 10px; /* Зменшив кнопку (було 14px) */
+    font-size: 14px;
+}
+
+/* Quests */
+.quests-container {
+    background-color: #242424;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    padding: 25px;
+    margin-top: 20px;
+    flex-grow: 1;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+}
+
+.quests-title {
+    text-align: center;
+    font-size: 14px;
+    color: #888;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+.quests-list h3 { font-size: 16px; margin-bottom: 12px; }
+
+.quests-list ul { list-style: none; }
+
+.quests-list li {
+    color: #bbb;
+    font-size: 15px;
+    margin-bottom: 12px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.quests-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #f47e2d;
+}
+
+/* --- Sign In Page Styles --- */
+
+/* Контейнер форми */
+.login-container {
+    width: 100%;
+    max-width: 350px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Заголовок "Sign in to get started" */
+.title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+/* Форма */
+.auth-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Відстань між інпутами */
+}
+
+/* Обгортка для полів вводу (щоб іконка була всередині) */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Стилі для самих інпутів */
+.form-input {
+    width: 100%;
+    background-color: #252525; /* Трохи світліше за фон тіла */
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 16px 15px;
+    color: #ffffff;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    border-color: #f47e2d; /* Помаранчева рамка при кліку */
+}
+
+/* Іконка ока */
+.eye-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    fill: #666; /* Колір за замовчуванням */
+    cursor: pointer;
+    transition: fill 0.2s;
+}
+
+.eye-icon:hover {
+    fill: #999;
+}
+
+/* Кнопка Sign In (наслідує стилі з попереднього екрана, але додаємо ширину) */
+.login-container .btn-primary {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    /* Колір і радіус підхопляться з існуючого .btn-primary */
+}
+
+/* Футер "Don't have an account?" */
+.footer-text {
+    margin-top: 25px;
+    font-size: 14px;
+    color: #888;
+}
+
+.sign-in-link {
+    color: #f47e2d; /* Виділяємо посилання помаранчевим */
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.sign-in-link:hover {
+    text-decoration: underline;
+}
+
+/* Плейсхолдер кольору */
+.form-input::placeholder {
+    color: #666;
+}
+
+
+
+/* --- Auth Pages Styles (Sign In & Sign Up) --- */
+.auth-container {
+    width: 100%;
+    max-width: 350px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Центрує форму по вертикалі */
+    min-height: 100vh;
+}
+
+.auth-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.auth-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Трохи менший відступ, бо в реєстрації багато полів */
+}
+
+.auth-submit {
+    margin-top: 15px;
+    width: 100%;
+}
+
+/* Обгортка для полів з "оком" */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Іконка ока */
+.eye-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    fill: #666;
+    cursor: pointer;
+    z-index: 2;
+}
+
+
+/* Додай це, щоб інпути ожили */
+.form-input {
+    width: 100%;
+    background-color: #252525;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 16px 15px;
+    color: #ffffff;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    border-color: #f47e2d;
+}
+
+.form-input::placeholder {
+    color: #666;
+}
