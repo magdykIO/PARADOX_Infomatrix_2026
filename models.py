@@ -36,7 +36,7 @@ class Quest(Base):
     description = Column(String)
     category = Column(String)
     from_who = Column(String)  # Від кого таска
-
+    is_started = Column(Boolean, default=False)
     difficulty = Column(Integer)
     base_reward = Column(Integer)
 
