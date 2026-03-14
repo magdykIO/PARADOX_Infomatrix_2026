@@ -1,8 +1,15 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, JSON, Table
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from database import Base
 
+# ТАБЛИЦЯ-ЗВ'ЯЗОК (Має бути перед класом User)
+friendships = Table(
+    "friendships",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("friend_id", Integer, ForeignKey("users.id"), primary_key=True),
+)
 
 class User(Base):
     __tablename__ = "users"
@@ -12,20 +19,25 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-
     nuts_amount = Column(Integer, default=0)
 
-    # Тепер це об'єкт: {"hat": "regular", "body": "regular", "eyes": "regular", ...}
-    current_skin = Column(
-        JSON, default=lambda: {"full_set": "regular", "background": "regular"}
-    )
-    # Список усіх куплених частин: ["hat_regular", "hat_golden", "body_regular"]
+    current_skin = Column(JSON, default=lambda: {"full_set": "regular", "background": "regular"})
     unlocked_skins = Column(JSON, default=lambda: ["full_regular", "bg_regular"])
 
     last_seen = Column(DateTime, onupdate=func.now())
     join_time = Column(DateTime, server_default=func.now())
 
-    quests = relationship("Quest", back_populates="owner", cascade="all, delete-orphan")
+    # Зв'язки
+    friends = relationship(
+        "User",
+        secondary=friendships,
+        primaryjoin=(id == friendships.c.user_id),
+        secondaryjoin=(id == friendships.c.friend_id),
+        backref="friend_of"
+    )
+    
+    quests = relationship("Quest", back_populates="owner", cascade="all, delete-orphan", foreign_keys="[Quest.user_id]")
+    sent_quests = relationship("Quest", back_populates="sender", foreign_keys="[Quest.sender_id]")
 
 
 class Quest(Base):
@@ -35,29 +47,26 @@ class Quest(Base):
     title = Column(String, nullable=False)
     description = Column(String)
     category = Column(String)
-    from_who = Column(String)  # Від кого таска
+    from_who = Column(String) 
+    
     is_started = Column(Boolean, default=False)
+    is_completed = Column(Boolean, default=False)
     difficulty = Column(Integer)
     base_reward = Column(Integer)
 
-    # Конфіги від Gemini
-    # можна зберігати декілька для різної важкості
     deadlines_config = Column(JSON, nullable=True)
     multipliers_config = Column(JSON, nullable=True)
-
-    # "easy", "medium" або "hard"
     selected_difficulty_level = Column(String)
-
-    # Розрахований виграш (base_reward * multiplier).
-    # Зберігаємо тут, щоб не рахувати кожен раз.
     final_reward = Column(Integer, nullable=True)
 
-    is_completed = Column(Boolean, default=False)
-
-    # Дата закінчення дедлайну (вибрана з config або встановлена вручну)
     deadline = Column(DateTime, nullable=True)
-
     created_at = Column(DateTime, server_default=func.now())
 
+    # Зовнішні ключі
     user_id = Column(Integer, ForeignKey("users.id"))
-    owner = relationship("User", back_populates="quests")
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    proof_data = Column(String, nullable=True)
+
+    # Relationship
+    owner = relationship("User", back_populates="quests", foreign_keys=[user_id])
+    sender = relationship("User", back_populates="sent_quests", foreign_keys=[sender_id])

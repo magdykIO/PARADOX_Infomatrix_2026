@@ -1,0 +1,42 @@
+<div class="row">
+    <div class="col-md-4">
+        <h3>🌍 Усі гравці</h3>
+        <div class="list-group">
+            {% for player in all_players %}
+                {% if player.id != user.id %} <div class="list-group-item card mb-2 d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ player.username }}</strong>
+                        <br><small class="text-warning">💰 {{ player.nuts_amount }} горішків</small>
+                    </div>
+                    <button class="btn btn-outline-warning btn-sm" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#challengeModal{{ player.id }}">
+                        Кинути виклик
+                    </button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h3>📩 Тобі кинули виклик</h3>
+        {% for quest in incoming_quests %}
+        <div class="card mb-3 p-3 border-warning">
+            <div class="d-flex justify-content-between">
+                <h5>{{ quest.title }}</h5>
+                <span class="badge bg-warning text-dark">{{ quest.final_reward }} 🥜</span>
+            </div>
+            <p class="text-muted">Від: <strong>{{ quest.from_who }}</strong></p>
+            
+            <form action="/complete-task/{{ quest.id }}" method="post">
+                <button type="submit" class="btn btn-success w-100">Я зробив! (Отримати нагороду)</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="text-center mt-4">
+            <p class="text-muted">Поки що ніхто не насмілився кинути тобі виклик... 🤔</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>

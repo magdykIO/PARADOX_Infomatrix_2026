@@ -1,188 +1,199 @@
-from fastapi import FastAPI, HTTPException, Depends
+import os
+from fastapi import FastAPI, HTTPException, Depends, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from database import get_db
-import models
-from generate import RPGTaskArchitect
-from pydantic import BaseModel
 from datetime import datetime, timedelta
+from pydantic import BaseModel
+
+# Твої модулі
+import models
+from database import get_db
+from generate import RPGTaskArchitect
 
 app = FastAPI()
-# ... (Middleware остается как был)
 
-architect = RPGTaskArchitect("YOUR_GEMINI_API_KEY")
+# Налаштування шаблонів
+templates = Jinja2Templates(directory="templates")
+
+# Ініціалізація ШІ
+GEMINI_KEY = os.getenv("GEMINI_API_KEY", "ТВІЙ_КЛЮЧ_ТУТ")
+architect = RPGTaskArchitect(GEMINI_KEY)
 
 class DreamRequest(BaseModel):
     user_id: int
     dream: str
 
-@app.post("/generate-quest")
-async def create_quest(request: DreamRequest, db: Session = Depends(get_db)):
-    # 1. Проверяем пользователя
-    user = db.query(models.User).filter(models.User.id == request.user_id).first()
+# --- ДОПОМІЖНА ФУНКЦІЯ ---
+def parse_deadline_string(deadline_str: str):
+    try:
+        parts = str(deadline_str).split()
+        amount = int(parts[0])
+        unit = parts[1].lower()
+        if "hour" in unit: return timedelta(hours=amount)
+        if "day" in unit: return timedelta(days=amount)
+        if "min" in unit: return timedelta(minutes=amount)
+        return timedelta(hours=1)
+    except:
+        return timedelta(hours=1)
+
+# --- 1. ПЕРЕГЛЯД СОЦІАЛЬНОГО ХАБУ (HTML) ---
+@app.get("/social/hub", response_class=HTMLResponse)
+async def social_hub(request: Request, db: Session = Depends(get_db)):
+    # Тестовий юзер Igor (ID=1)
+    current_user = db.query(models.User).filter(models.User.id == 1).first()
+    if not current_user:
+        return HTMLResponse(content="Register user first", status_code=404)
+
+    all_users = db.query(models.User).all()
+    incoming_quests = db.query(models.Quest).filter(
+        models.Quest.user_id == current_user.id,
+        models.Quest.sender_id != None,
+        models.Quest.is_completed == False
+    ).all()
+
+    return templates.TemplateResponse("social.html", {
+        "request": request,
+        "user": current_user,
+        "all_players": all_users,
+        "incoming_quests": incoming_quests
+    })
+
+# --- 2. ВІДПРАВКА ВИКЛИКУ ДРУГУ ---
+@app.post("/social/send-challenge")
+async def send_challenge(
+    receiver_username: str = Form(...), 
+    title: str = Form(...), 
+    reward: int = Form(...), 
+    db: Session = Depends(get_db)
+):
+    me = db.query(models.User).filter(models.User.id == 1).first() 
+    receiver = db.query(models.User).filter(models.User.username == receiver_username).first()
+
+    if not receiver or me.nuts_amount < reward:
+        return RedirectResponse(url="/social/hub?error=failed", status_code=303)
+
+    me.nuts_amount -= reward
+    new_quest = models.Quest(
+        title=title,
+        final_reward=reward,
+        base_reward=reward,
+        user_id=receiver.id,
+        sender_id=me.id,
+        from_who=me.username,
+        is_started=True,
+        is_completed=False
+    )
+    db.add(new_quest)
+    db.commit()
+    return RedirectResponse(url="/social/hub", status_code=303)
+
+# --- 3. API ДЛЯ ГОЛОВНОЇ СТОРІНКИ (loadUserQuests) ---
+@app.get("/api/quests/{username}")
+async def get_user_quests(username: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        return {"quests": []}
+    quests = db.query(models.Quest).filter(models.Quest.user_id == user.id).all()
+    return {"quests": quests}
+
+# --- 4. API ГЕНЕРАЦІЇ (renderTasksForGoal) ---
+@app.post("/api/generate_tasks")
+async def api_generate_tasks(data: dict, db: Session = Depends(get_db)):
+    goal = data.get("goal")
+    username = data.get("username")
+    user = db.query(models.User).filter(models.User.username == username).first()
+    
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 2. Генерируем план через ИИ
-    ai_response = architect.generate_rpg_plan(request.dream)
+    ai_response = architect.generate_rpg_plan(goal)
     if "error" in ai_response:
-        raise HTTPException(status_code=500, detail=ai_response["error"])
+        return {"error": ai_response["error"]}
 
-    # 3. Обновляем цель пользователя
-    user.goal = request.dream
+    # Видаляємо старі незавершені ШІ-таски
+    db.query(models.Quest).filter(
+        models.Quest.user_id == user.id, 
+        models.Quest.is_completed == False, 
+        models.Quest.sender_id == None
+    ).delete()
 
-    # 4. Удаляем старые невыполненные квесты (если нужно начать новую мечту)
-    db.query(models.Quest).filter(models.Quest.user_id == user.id, models.Quest.is_completed == False).delete()
-
-    # 5. Сохраняем новые квесты в базу
-    new_quests = []
+    new_tasks = []
     for task in ai_response["tasks"]:
-        quest_entry = models.Quest(
+        q = models.Quest(
             title=task["title"],
             description=task["description"],
             difficulty=task["complexity"],
             base_reward=task["base_reward"],
             category=task.get("attribute", "General"),
             from_who="Gemini Game Master",
-            # Сохраняем конфиги как JSON
-            deadlines_config=task["deadlines"],
-            multipliers_config=task["multipliers"],
+            deadlines_config=task.get("deadlines_config") or task.get("deadlines"),
+            multipliers_config=task.get("multipliers_config") or task.get("multipliers"),
             user_id=user.id,
             is_completed=False
         )
-        new_quests.append(quest_entry)
-
-    db.add_all(new_quests)
-    db.commit()
-
-    return {"status": "success", "message": "Quests generated and saved to DB", "tasks": ai_response["tasks"]}
-
-from datetime import datetime
-
-@app.post("/complete-task/{quest_id}")
-async def complete_task(quest_id: int, db: Session = Depends(get_db)):
-    # 1. Ищем квест и пользователя
-    quest = db.query(models.Quest).filter(models.Quest.id == quest_id).first()
-    if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
-    
-    if quest.is_completed:
-        raise HTTPException(status_code=400, detail="Quest already finished")
-
-    user = db.query(models.User).filter(models.User.id == quest.user_id).first()
-    
-    # 2. Проверяем дедлайн
-    now = datetime.now()
-    # Если дедлайн не был установлен (пользователь не делал ставку), считаем как успех
-    is_on_time = True
-    if quest.deadline and now > quest.deadline:
-        is_on_time = False
-
-    # 3. Извлекаем коэффициент (multiplier)
-    # selected_difficulty_level может быть 'easy', 'medium' или 'hard'
-    level = quest.selected_difficulty_level or "easy" 
-    multiplier = quest.multipliers_config.get(level, 0.0)
-
-    # 4. Считаем награду по твоей формуле
-    if is_on_time:
-        # Уложился: Base + (Base * Coeff)
-        reward = quest.base_reward + (quest.base_reward * multiplier)
-    else:
-        # Опоздал: Base - (Base * Coeff)
-        reward = quest.base_reward - (quest.base_reward * multiplier)
-    
-    reward = int(reward) # Округляем до целого числа орехов
-
-    # 5. Обновляем базу данных
-    user.nuts_amount += reward
-    quest.is_completed = True
-    quest.final_reward = reward # Сохраняем, сколько реально получил
+        db.add(q)
+        db.flush() # Отримати ID для фронтенда
+        new_tasks.append(q)
 
     db.commit()
+    return {"status": "success", "tasks": new_tasks, "source": "Gemini AI"}
 
-    # 6. Генерируем мгновенный комментарий через ИИ
-    comment = architect.generate_comment(success=is_on_time)
-
-    return {
-        "status": "success" if is_on_time else "failed",
-        "comment": comment,
-        "reward_received": reward,
-        "new_balance": user.nuts_amount
-    }
-
-# Вспомогательная функция для парсинга дедлайнов от ИИ (например, "2 hours" -> timedelta)
-def parse_deadline_string(deadline_str: str):
-    parts = deadline_str.split()
-    amount = int(parts[0])
-    unit = parts[1].lower()
-    if "hour" in unit: return timedelta(hours=amount)
-    if "day" in unit: return timedelta(days=amount)
-    if "min" in unit: return timedelta(minutes=amount)
-    return timedelta(hours=1) # Default
-
+# --- 5. СТАРТ ТАСКИ (ГЕМБЛІНГ) ---
 @app.post("/start-task/{quest_id}")
 async def start_task(quest_id: int, mode: str = "none", db: Session = Depends(get_db)):
     quest = db.query(models.Quest).filter(models.Quest.id == quest_id).first()
-    if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+    if not quest: raise HTTPException(status_code=404, detail="Quest not found")
 
     quest.is_started = True 
-    
     quest.selected_difficulty_level = mode
     
-    if mode == "none":
-        quest.deadline = None
-        quest.final_reward = quest.base_reward
-    else:
+    if mode != "none" and quest.deadlines_config:
         deadline_text = quest.deadlines_config.get(mode, "1 day")
         quest.deadline = datetime.now() + parse_deadline_string(deadline_text)
         
-        multiplier = quest.multipliers_config.get(mode, 0.0)
-        quest.final_reward = int(quest.base_reward + (quest.base_reward * multiplier))
-
     db.commit()
-    return {"status": "started", "mode": mode, "deadline": quest.deadline, "is_started": True}
+    return {"status": "started", "deadline": quest.deadline}
 
+# --- 6. ЗАВЕРШЕННЯ (ОБ'ЄДНАНЕ + API PATCH) ---
 @app.post("/complete-task/{quest_id}")
+@app.patch("/api/quest/{quest_id}")
 async def complete_task(quest_id: int, db: Session = Depends(get_db)):
     quest = db.query(models.Quest).filter(models.Quest.id == quest_id).first()
+    if not quest or quest.is_completed:
+        return {"error": "Quest already finished or not found"}
+
     user = db.query(models.User).filter(models.User.id == quest.user_id).first()
-
-    if not quest.selected_difficulty_level:
-        raise HTTPException(status_code=400, detail="Task was not started")
-
     now = datetime.now()
-    
-    # ЛОГИКА НАГРАДЫ
-    if quest.selected_difficulty_level == "none":
-        # Сценарий БЕЗ дедлайна: просто базовая награда
-        actual_reward = quest.base_reward
+
+    # Логіка винагороди
+    if quest.sender_id:
+        reward = quest.final_reward
         is_success = True
     else:
-        # Сценарий С ГЕМБЛИНГОМ
-        multiplier = quest.multipliers_config.get(quest.selected_difficulty_level, 0.0)
-        
-        if quest.deadline and now <= quest.deadline:
-            # Уложился: Base + (Base * Coeff)
-            actual_reward = quest.base_reward + (quest.base_reward * multiplier)
+        mode = quest.selected_difficulty_level or "none"
+        if mode == "none":
+            reward = quest.base_reward
             is_success = True
         else:
-            # Провал дедлайна: Base - (Base * Coeff)
-            actual_reward = quest.base_reward - (quest.base_reward * multiplier)
-            is_success = False
+            multiplier = quest.multipliers_config.get(mode, 0.0)
+            if quest.deadline and now <= quest.deadline:
+                reward = quest.base_reward + (quest.base_reward * multiplier)
+                is_success = True
+            else:
+                reward = quest.base_reward - (quest.base_reward * multiplier)
+                is_success = False
 
-    # Обновляем баланс и статус
-    actual_reward = int(actual_reward)
-    user.nuts_amount += actual_reward
+    reward = int(reward)
+    user.nuts_amount += reward
     quest.is_completed = True
-    quest.final_reward = actual_reward
-    
+    quest.final_reward = reward
     db.commit()
 
-    # Генерация комментария
     comment = architect.generate_comment(success=is_success)
-
-    return {
-        "comment": comment,
-        "reward": actual_reward,
-        "total_nuts": user.nuts_amount
-    }
+    
+    # Якщо запит від форми соціального хабу
+    if quest.sender_id and not "/api/" in str(quest_id): 
+        return RedirectResponse(url="/social/hub", status_code=303)
+    
+    return {"comment": comment, "reward": reward, "total_nuts": user.nuts_amount}
