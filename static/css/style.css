@@ -6,8 +6,8 @@
 }
 
 body {
-    background-color: #1a1a1a;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #1B1B1B;
+    font-family: Roboto, sans-serif;
     color: #f5f5f5;
     display: flex;
     justify-content: center;
@@ -17,14 +17,41 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
 }
 
+.icon-list {
+    display: flex;
+    justify-content: center;
+    gap: 38px;
+    margin-top: 10px;
+    align-items: center;
+
+}
+
+/* Header icon links and hover behavior */
+.icon-list .icon-link { display: inline-block; line-height: 0; }
+.icon-list .icon-link .nav-icon,
+.icon-list .nav-icon { display: block;  transition: transform 0.12s ease, filter 0.12s ease; }
+.icon-list .icon-link { text-decoration: none; }
+
+/* Slight enlarge on hover for navigable icons */
+.icon-list .icon-link:hover .nav-icon { transform: scale(1.16); }
+.icon-list .icon-link:active .nav-icon { transform: scale(1.08); }
+
+/* Center logo should stay static and slightly larger */
+.center-logo {  height: auto; pointer-events: none; }
+
 /* --- 2. Спільні компоненти --- */
 .app-container, .welcome-container {
     width: 100%;
-    max-width: 450px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     margin: 0 auto;
+}
+
+
+.app-container {
+    width: 412px;
+    
 }
 
 /* Кнопки */
@@ -150,13 +177,10 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    margin-top: 10px;
 }
 
-.header-logo-img {
-    height: 42px; /* Збільшив логотип (було 30px) */
-    width: auto;
-}
+
 
 .icon-btn {
     color: #f47e2d;
@@ -164,70 +188,129 @@ body {
 }
 
 .character-section {
-    padding: 10px 20px;
+    width: 412px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center; /* Додає вертикальне центрування */
     gap: 15px;
 }
-
 .character-card {
-    width: 100%;
-    background: #2a2a2a;
-    border-radius: 25px;
-    overflow: hidden;
-    border: 1px solid #333;
-    aspect-ratio: 16 / 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: relative;
 }
 
-.squirrel-img {
-    width: 45%; /* Зменшив білку (було 60%) */
+.character-card img {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    max-width: 90%;
     height: auto;
 }
+.character-card {
+    width: 100%;
+    background: url('/static/img/skins/background-skins/standard-bg.svg') center no-repeat;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    margin: 0 auto;
+    margin-top: 30px;
+}
+
+/* Центрування картинки всередині .character-card */
+.squirrel-img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
 
 /* Ввід та кнопка Generate */
 .input-group {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    max-width: 280px; /* Зробив групу вводу компактнішою */
+    gap: 14px;
+    max-width: 335px; /* ширина групи вводу */
+    margin: 0 auto; /* центрируем группу */
+    align-items: center;
 }
 
+/* Великий круглий інпут для цілі */
 .goal-input {
-    background-color: #121212;
-    border: 1px solid #333;
-    border-radius: 12px;
-    padding: 10px;
-    color: white;
-    text-align: center;
+    width: 100%;
+    background-color: #151515; /* трохи темніший за фон */
+    border: 1px solid #313131;
+    border-radius: 17px;
+    padding: 9px 24px;
+    color: #e9e9e9;
+    font-size: 15px;
+    outline: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    transition: box-shadow 0.15s, border-color 0.15s;
+}
+.goal-input::placeholder { color: #4C4C4C; font-size: 15px; }
+.goal-input:focus {
+    border-color: rgba(244,126,45,0.9);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
 }
 
+/* Большая кнопка Generate — центрована, заметная */
 .btn-generate {
-    padding: 10px; /* Зменшив кнопку (було 14px) */
-    font-size: 14px;
+    display: block;
+    width: 70%;
+    max-width: 212px;
+    background-color: #f47e2d;
+    color: #fff;
+    border: none;
+    border-radius: 13px;
+    padding: 10px 73px;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
 }
+.btn-generate:active { transform: translateY(1px); background-color: #d66a1f; }
+
+/* Hover state for generate button */
+.btn-generate:hover {
+    transform: translateY(-2px);
+
+}
+
+
 
 /* Quests */
 .quests-container {
     background-color: #242424;
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
-    padding: 25px;
-    margin-top: 20px;
+    /* padding: 25px; */
+    margin-top: 32px;
     flex-grow: 1;
     box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
 }
 
 .quests-title {
     text-align: center;
-    font-size: 14px;
-    color: #888;
-    letter-spacing: 2px;
-    margin-bottom: 20px;
+    font-size: 20px;
+    color: #fff;
+    margin-top: 25px;
+    margin-bottom: 13px;
+    position: relative;
+    padding-bottom: 14px; /* space for underline */
+}
+
+.quests-title::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 6px;
+    width: 141px;
+    height: 2px;
+    background: #fff;
+    border-radius: 15px;
 }
 
 .quests-list h3 { font-size: 16px; margin-bottom: 12px; }
@@ -248,6 +331,54 @@ body {
     left: 0;
     color: #f47e2d;
 }
+
+/* Quest group card style (matches mockup) */
+.quests-list .group {
+    background: #2b2b2b;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+.quests-list .group h3 {
+    font-size: 18px;
+    margin: 0 0 10px 0;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.quests-list .group .group-title { font-weight: 700; }
+.quests-list .group .chevron {
+    width: 22px; height: 22px; display:inline-block; color:#ddd; transform: rotate(0deg);
+}
+.quests-list .tasks { list-style: none; padding: 0; margin: 0; }
+.quests-list .tasks li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-radius: 8px;
+}
+.quests-list .tasks li .task-left { flex: 1; }
+.quests-list .tasks li .task-left .task-title { font-size: 16px; color:#f1f1f1; }
+.quests-list .tasks li .task-left .task-title.completed { text-decoration: line-through; color: #8a8a8a; }
+.quests-list .tasks li .task-right { white-space: nowrap; margin-left: 8px; }
+.quests-list .badge {
+    color: #fff;
+    background: transparent;
+    font-weight: 800;
+    color: #ffb38a;
+}
+.quests-list .acorn {
+    color: #f47e2d; margin-left:6px; font-size: 18px; vertical-align: middle;
+}
+
+/* Make long task text wrap nicely while keeping badge to the right */
+.quests-list .tasks li .task-left { word-break: break-word; }
+
+/* Small styling for the group subtitle icon */
+.quests-list .group-sub { color: #cfcfcf; font-size: 13px; margin-left: 8px; }
 
 /* --- Sign In Page Styles --- */
 

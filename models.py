@@ -16,10 +16,11 @@ class User(Base):
     nuts_amount = Column(Integer, default=0)
 
     # Тепер це об'єкт: {"hat": "regular", "body": "regular", "eyes": "regular", ...}
-    current_skin = Column(JSON)
-
+    current_skin = Column(
+        JSON, default=lambda: {"full_set": "regular", "background": "regular"}
+    )
     # Список усіх куплених частин: ["hat_regular", "hat_golden", "body_regular"]
-    unlocked_skins = Column(JSON, default=list)
+    unlocked_skins = Column(JSON, default=lambda: ["full_regular", "bg_regular"])
 
     last_seen = Column(DateTime, onupdate=func.now())
     join_time = Column(DateTime, server_default=func.now())

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garderobe - Duplo</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+<body class="wardrobe-body">
+
+    <div class="wardrobe-container">
+        <header class="main-header">
+            <div class="header-left">
+                <a href="/profile/{{ user.username }}" class="icon-btn">👤</a>
+                <a href="/friends" class="icon-btn">👥</a>
+            </div>
+            <div class="logo-wrapper">
+                <span class="logo-text">Duplo</span>
+                <img src="/static/icons/logo-icon.png" class="logo-mini" alt="🌰">
+            </div>
+            <div class="header-right">
+                <a href="/wardrobe/{{ user.username }}" class="icon-btn active">👕</a>
+                <a href="/settings" class="icon-btn">⚙️</a>
+            </div>
+        </header>
+
+        <div class="character-preview-card" 
+             style="background-image: url('/static/icons/skins/bg/{{ user.current_skin.background }}.png');">
+            <div class="squirrel-display">
+                <img src="/static/icons/skins/full/{{ user.current_skin.full_set }}.png" 
+                     class="full-skin-img" alt="Current Squirrel">
+            </div>
+        </div>
+
+        <div class="wardrobe-toolbar">
+            <div class="balance-badge">
+                Balance: <span>{{ user.nuts_amount }}</span> 🌰
+            </div>
+            
+            <nav class="category-icons">
+                <div class="cat-icon active" onclick="switchCategory('skins', this)">👕</div>
+                <div class="cat-icon disable">🎩</div>
+                <div class="cat-icon disable">👓</div>
+                <div class="cat-icon disable">👔</div>
+                <div class="cat-icon disable">🖐️</div>
+                <div class="cat-icon disable">🐾</div>
+                <div class="cat-icon" onclick="switchCategory('backgrounds', this)">🖼️</div>
+            </nav>
+        </div>
+
+        <div class="inventory-grid">
+            {% for skin in available_skins %}
+            {% set is_unlocked = skin.id in user.unlocked_skins %}
+            <div class="skin-item {% if not is_unlocked %}locked{% endif %} {% if user.current_skin.full_set == skin.id %}equipped{% endif %}"
+                 onclick="{% if is_unlocked %}selectItem('full', '{{ skin.id }}'){% else %}buyItem('{{ skin.id }}', {{ skin.price }}){% endif %}">
+                
+                <div class="skin-card">
+                    <img src="/static/icons/skins/squirrel-skins/{{ skin.id }}.png" alt="{{ skin.name }}">
+                    {% if not is_unlocked %}
+                    <div class="lock-overlay">
+                        <span class="price-text">{{ skin.price }} 🌰</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <p class="skin-label">{{ skin.name }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='/js/wardrobe.js') }}"></script>
+</body>
+</html>
